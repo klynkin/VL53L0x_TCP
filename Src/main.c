@@ -76,7 +76,6 @@ static void MX_NVIC_Init(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
-
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
@@ -122,233 +121,8 @@ int main(void)
   /* USER CODE BEGIN 2 */
  // HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_7);
   HAL_UART_Transmit(&huart2, "allrightt\t\n", strlen("allright\t\n"), 0xffff);
+  vl53l0x_calibration();
 
-    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_10, GPIO_PIN_SET);
-
-  HAL_Delay(5);
-  //-----------------------------------------------------------------------------------------------------------------------------------------------
-  int k;
-  for (k=0;k<=2;k++) {
-
-  myDev=&myDevStruct[k];
-  myDev->I2cDevAddr=0x52;
-  myDev->Present = 0;
-  myDev->I2cHandle=&hi2c2;
-
-  	uint8_t str[100];
-      int status;
-      uint16_t Id;
-  		status = VL53L0X_RdWord(myDev, VL53L0X_REG_IDENTIFICATION_MODEL_ID, &Id);
-  		if (!status)
-  		{
-  		sprintf(str, "%d my id \r\n", Id);
-  		HAL_UART_Transmit(&huart2, str, strlen(str), 0xffff);
-  		}
-  		else
-  		HAL_GPIO_WritePin(GPIOE, GPIO_PIN_0, GPIO_PIN_SET);
-  		HAL_Delay(10);
-  		VL53L0X_ResetDevice(myDev);
-  		status = VL53L0X_SetDeviceAddress(myDev, 0x52+(k+1)*2);
-                  if( status == 0 ){
-  								myDev->I2cDevAddr=0x52+(k+1)*2;
-  								sprintf(str, "Adress ok  %x\r\n", myDev->I2cDevAddr);
-  								HAL_UART_Transmit(&huart2, str, strlen(str), 0xffff);
-                  }
-                  else
-  									{
-
-                	  	  	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_0, GPIO_PIN_RESET);
-  							sprintf(str, "Adres fail %d\r\n", status);
-  							HAL_UART_Transmit(&huart2, str, strlen(str), 0xffff);
-                    }
-
-  									HAL_Delay(10);
-
-                  status = VL53L0X_DataInit(myDev);
-  								if( status == 0 ){
-                      myDev->Present = 1;
-                  }
-                  else
-  									{
-  								sprintf(str, "Data init fail %d\r\n", status);
-  								HAL_UART_Transmit(&huart2, str, strlen(str), 0xffff);
-  								HAL_GPIO_WritePin(GPIOE, GPIO_PIN_0, GPIO_PIN_RESET);
-
-                    }
-  									HAL_Delay(20);
-
-
-    uint8_t VhvSettings;
-    uint8_t PhaseCal;
-    uint32_t refSpadCount;
-  	uint8_t isApertureSpads;
-  	FixPoint1616_t signalLimit = (FixPoint1616_t)(0.25*65536);
-  	FixPoint1616_t sigmaLimit = (FixPoint1616_t)(18*65536);
-  //-----------------------------------------------------------------------------------------------------------------------------------------------
-
-  	uint32_t timingBudget = 200000;
-  	uint8_t preRangeVcselPeriod = 14;
-  	uint8_t finalRangeVcselPeriod = 10;
-  signalLimit = (FixPoint1616_t)(0.1*65536);
-  sigmaLimit = (FixPoint1616_t)(60*65536);
-  timingBudget = 33000;
-  preRangeVcselPeriod = 18;
-  finalRangeVcselPeriod = 14;
-
-
- //-----------------------------------------------------------------------------------------------------------------------------------------------
-
-              status=VL53L0X_StaticInit(myDev);
-              if( status ){
-  							sprintf(str, "static init fail %d\r\n", status);
-  							HAL_UART_Transmit(&huart2, str, strlen(str), 0xffff);
-  					  		HAL_GPIO_WritePin(GPIOE, GPIO_PIN_0, GPIO_PIN_RESET);
-
-  							}
-  								else {
-  									sprintf(str, "static init Ok\r\n");
-  									 HAL_UART_Transmit(&huart2, str, strlen(str), 0xffff);
-  								}
-  			HAL_Delay(1);
-
-
-  						status = VL53L0X_PerformRefSpadManagement(myDev, &refSpadCount, &isApertureSpads);
-  					if( status ){
-  						sprintf(str, "perform SPAD calibration fail %d\r\n", status);
-  						HAL_UART_Transmit(&huart2, str, strlen(str), 0xffff);
-  						HAL_GPIO_WritePin(GPIOE, GPIO_PIN_0, GPIO_PIN_RESET);
-
-  						}
-  								else {
-  										sprintf(str, "spad calibration Ok\r\n");
-  										 HAL_UART_Transmit(&huart2, str, strlen(str), 0xffff);
-  									}
-
-  									HAL_Delay(10);
-
-
-              status = VL53L0X_PerformRefCalibration(myDev, &VhvSettings, &PhaseCal);
-  						if( status ){
-  						sprintf(str, "Ref calibration fail %d\r\n", status);
-  						HAL_UART_Transmit(&huart2, str, strlen(str), 0xffff);
-  						HAL_GPIO_WritePin(GPIOE, GPIO_PIN_0, GPIO_PIN_RESET);
-
-  							}
-  								else {
-  												sprintf(str, "Ref calibration ok \r\n", status);
-  												 HAL_UART_Transmit(&huart2, str, strlen(str), 0xffff);
-  											}
-  												HAL_Delay(1);
-
-  	 //-----------------------------------------------------------------------------------------------------------------------------------------------
-
-
-              status = VL53L0X_SetLimitCheckEnable(myDev, VL53L0X_CHECKENABLE_SIGMA_FINAL_RANGE, 1); // Enable Sigma limit
-  			if( status ){
-  			   sprintf(str, "SetLimitCheckEnable fail			%d\r\n", status);
-  					HAL_UART_Transmit(&huart2, str, strlen(str), 0xffff);
-  					HAL_GPIO_WritePin(GPIOE, GPIO_PIN_0, GPIO_PIN_RESET);
-
-  					}
-  								else {
-  										sprintf(str, "SetLimitCheckEnable Ok\r\n");
-  										 HAL_UART_Transmit(&huart2, str, strlen(str), 0xffff);
-  									}
-  				HAL_Delay(1);
-
-
-  			status = VL53L0X_SetLimitCheckEnable(myDev, VL53L0X_CHECKENABLE_SIGNAL_RATE_FINAL_RANGE, 1); // Enable Signa limit
-  			if( status ){
-  				sprintf(str, "SetLimitCheckEnable signal fail\r\n");
-  				HAL_UART_Transmit(&huart2, str, strlen(str), 0xffff);
-  				HAL_GPIO_WritePin(GPIOE, GPIO_PIN_0, GPIO_PIN_RESET);
-
-  					}
-  								else {
-  										sprintf(str, "SetLimitCheckEnable signal Ok\r\n");
-  										 HAL_UART_Transmit(&huart2, str, strlen(str), 0xffff);
-  									}
-  				HAL_Delay(1);
-
-
-  	status = VL53L0X_SetLimitCheckValue(myDev,  VL53L0X_CHECKENABLE_SIGNAL_RATE_FINAL_RANGE, signalLimit);
-  			if( status ){
-  			   sprintf(str, "SetLimitCheckValue signal fail\r\n");
-  			   HAL_UART_Transmit(&huart2, str, strlen(str), 0xffff);
-  			   HAL_GPIO_WritePin(GPIOE, GPIO_PIN_0, GPIO_PIN_RESET);
-
-  					}
-  								else {
-  										sprintf(str, "SetLimitCheckValue signal Ok\r\n");
-  										 HAL_UART_Transmit(&huart2, str, strlen(str), 0xffff);
-  									}
-
-  				HAL_Delay(1);
-
-
-  			status = VL53L0X_SetLimitCheckValue(myDev,  VL53L0X_CHECKENABLE_SIGMA_FINAL_RANGE, sigmaLimit);
-  			if( status ){
-  			   sprintf(str, "SetLimitCheckValue sigma fail\r\n");
-  			   HAL_UART_Transmit(&huart2, str, strlen(str), 0xffff);
-    		   HAL_GPIO_WritePin(GPIOE, GPIO_PIN_0, GPIO_PIN_RESET);
-
-  					}
-  								else {
-  										sprintf(str, "SetLimitCheckValue sigma Ok\r\n");
-  										 HAL_UART_Transmit(&huart2, str, strlen(str), 0xffff);
-  									}
-
-  				HAL_Delay(1);
-
-
-              status = VL53L0X_SetVcselPulsePeriod(myDev,  VL53L0X_VCSEL_PERIOD_PRE_RANGE, preRangeVcselPeriod);
-  			if( status ){
-  			   sprintf(str, "SetVcselPulsePeriod fail\r\n");
-  			   HAL_UART_Transmit(&huart2, str, strlen(str), 0xffff);
-  			   HAL_GPIO_WritePin(GPIOE, GPIO_PIN_0, GPIO_PIN_RESET);
-
-  					}
-  								else {
-  										sprintf(str, "SetVcselPulsePeriod Ok\r\n");
-  										 HAL_UART_Transmit(&huart2, str, strlen(str), 0xffff);
-  									}
-  				HAL_Delay(1);
-
-
-              status = VL53L0X_SetVcselPulsePeriod(myDev,  VL53L0X_VCSEL_PERIOD_FINAL_RANGE, finalRangeVcselPeriod);
-  			if( status ){
-  				sprintf(str, "SetVcselPulsePeriod final fail\r\n");
-  				HAL_UART_Transmit(&huart2, str, strlen(str), 0xffff);
-  				HAL_GPIO_WritePin(GPIOE, GPIO_PIN_0, GPIO_PIN_RESET);
-
-  					}
-  								else {
-  										sprintf(str, "SetVcselPulsePeriod final Ok\r\n");
-  										 HAL_UART_Transmit(&huart2, str, strlen(str), 0xffff);
-  									}
-  				HAL_Delay(1);
-
-
-  					status = VL53L0X_SetMeasurementTimingBudgetMicroSeconds(myDev, timingBudget);
-
-  	 //-----------------------------------------------------------------------------------------------------------------------------------------------
-
-  			VL53L0X_SetDeviceMode(myDev, VL53L0X_DEVICEMODE_CONTINUOUS_RANGING);
-  			VL53L0X_SetInterruptThresholds(myDev, VL53L0X_DEVICEMODE_CONTINUOUS_RANGING ,  200<<16 ,  0<<16);
-        status = VL53L0X_SetGpioConfig(myDev, 0, VL53L0X_DEVICEMODE_CONTINUOUS_RANGING, VL53L0X_GPIOFUNCTIONALITY_THRESHOLD_CROSSED_LOW, VL53L0X_INTERRUPTPOLARITY_HIGH);
-  	 //-----------------------------------------------------------------------------------------------------------------------------------------------
-
-  		VL53L0X_StopMeasurement(myDev);  // it is safer to do this while sensor is stopped
-if(k==0)
-  {
-	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_11, GPIO_PIN_SET);
-  }
-else{
-	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_14, GPIO_PIN_SET);
-}
-  											HAL_Delay(75);
-
-  							}
     //  status = VL53L0X_ClearInterruptMask(myDev, -1); // clear interrupt pending if any
   myDev=&myDevStruct[0];
    			VL53L0X_StartMeasurement(myDev);
@@ -371,7 +145,7 @@ else{
 
   /* Start scheduler */
   osKernelStart();
-  
+
   /* We should never get here as control is now taken by the scheduler */
 
   /* Infinite loop */
@@ -398,13 +172,13 @@ void SystemClock_Config(void)
   RCC_OscInitTypeDef RCC_OscInitStruct;
   RCC_ClkInitTypeDef RCC_ClkInitStruct;
 
-    /**Configure the main internal regulator output voltage 
+    /**Configure the main internal regulator output voltage
     */
   __HAL_RCC_PWR_CLK_ENABLE();
 
   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
 
-    /**Initializes the CPU, AHB and APB busses clocks 
+    /**Initializes the CPU, AHB and APB busses clocks
     */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
@@ -419,7 +193,7 @@ void SystemClock_Config(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-    /**Initializes the CPU, AHB and APB busses clocks 
+    /**Initializes the CPU, AHB and APB busses clocks
     */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
@@ -433,11 +207,11 @@ void SystemClock_Config(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-    /**Configure the Systick interrupt time 
+    /**Configure the Systick interrupt time
     */
   HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/1000);
 
-    /**Configure the Systick 
+    /**Configure the Systick
     */
   HAL_SYSTICK_CLKSourceConfig(SYSTICK_CLKSOURCE_HCLK);
 
@@ -461,7 +235,6 @@ static void MX_NVIC_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
 /* USER CODE END 4 */
 
 /**

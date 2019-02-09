@@ -272,6 +272,7 @@ portBASE_TYPE xStatus;
 int *buf;
 static int i=1;
 volatile	 UBaseType_t uxHighWaterMark;
+				__WFI();
   	  	  	  	  	xStatus = xQueueReceive( xQueueStart, &lReceivedValue, portMAX_DELAY);
 				//	sprintf(str_buf,"start");
 					sent_err=netconn_write(conn, "start", 5, NETCONN_COPY);
@@ -499,7 +500,9 @@ xSemaphoreTake(xBinarySemaphoreStop, portMAX_DELAY );
 							        osThreadTerminate(tcp_thread);
 							        osThreadTerminate(defaultTaskHandle);
 							        osThreadTerminate(task_servo);
+							        __WFI();
 							        osThreadTerminate(NULL);
+
 	  		      for(;;)
 		  		  	  		{
 

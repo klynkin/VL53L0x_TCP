@@ -119,23 +119,22 @@ int main(void)
   /* Initialize interrupts */
   MX_NVIC_Init();
   /* USER CODE BEGIN 2 */
- // HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_7);
-  HAL_UART_Transmit(&huart2, "allrightt\t\n", strlen("allright\t\n"), 0xffff);
   vl53l0x_calibration();
 
-    //  status = VL53L0X_ClearInterruptMask(myDev, -1); // clear interrupt pending if any
   myDev=&myDevStruct[0];
-   			VL53L0X_StartMeasurement(myDev);
-   			VL53L0X_ClearInterruptMask(myDev, -1);
-   		HAL_Delay(10);
-  myDev=&myDevStruct[1];
-   			VL53L0X_StartMeasurement(myDev);
-   			VL53L0X_ClearInterruptMask(myDev, -1);
-   		HAL_Delay(10);
-  myDev=&myDevStruct[2];
-     		VL53L0X_StartMeasurement(myDev);
-     		VL53L0X_ClearInterruptMask(myDev, -1);
-     		HAL_Delay(10);
+   		VL53L0X_StartMeasurement(myDev);
+   		VL53L0X_ClearInterruptMask(myDev, -1);
+   		HAL_Delay(1);
+
+ myDev=&myDevStruct[1];
+   		VL53L0X_StartMeasurement(myDev);
+   		VL53L0X_ClearInterruptMask(myDev, -1);
+   		HAL_Delay(1);
+
+ myDev=&myDevStruct[2];
+     	VL53L0X_StartMeasurement(myDev);
+     	VL53L0X_ClearInterruptMask(myDev, -1);
+     	HAL_Delay(1);
   	 //-----------------------------------------------------------------------------------------------------------------------------------------------
 
   /* USER CODE END 2 */

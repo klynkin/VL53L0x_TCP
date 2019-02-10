@@ -76,6 +76,8 @@
 extern VL53L0X_Dev_t	myDevStruct[2];
 extern VL53L0X_DEV myDev;
 extern UART_HandleTypeDef huart2;
+extern TIM_HandleTypeDef htim2;
+extern TIM_HandleTypeDef htim4;
 
 xSemaphoreHandle xBinarySemaphore1;
 xSemaphoreHandle xBinarySemaphore2;
@@ -119,7 +121,6 @@ static void task_servo(void *pvParameters);
 /* USER CODE END FunctionPrototypes */
 
 void StartDefaultTask(void const * argument);
-
 extern void MX_LWIP_Init(void);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -130,8 +131,6 @@ void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
   */
 void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN Init */
-	volatile size_t fre=0;
-	fre=xPortGetFreeHeapSize();
   /* USER CODE END Init */
 
   /* USER CODE BEGIN RTOS_MUTEX */
@@ -157,7 +156,6 @@ void MX_FREERTOS_Init(void) {
   	vSemaphoreCreateBinary( xBinarySemaphore1 );
   	vSemaphoreCreateBinary( xBinarySemaphore2 );
     vSemaphoreCreateBinary( xBinarySemaphore3 );
-	fre=xPortGetFreeHeapSize();
     vSemaphoreCreateBinary( xBinarySemaphoreStart );
     vSemaphoreCreateBinary( xBinarySemaphoreStop );
     xQueue = xQueueCreate(1, sizeof( int ) );
@@ -165,15 +163,10 @@ void MX_FREERTOS_Init(void) {
 
     if( xBinarySemaphore1 != NULL && xBinarySemaphore2 != NULL && xBinarySemaphore3 != NULL && xBinarySemaphoreStart != NULL && xBinarySemaphoreStop != NULL)
       {
-  //  	xTaskCreate( vHandlerTask1, "Handler", 2*DEFAULT_THREAD_STACKSIZE, NULL, 1, NULL );
-   // 	xTaskCreate( vHandlerTask2, "Handler", 2*DEFAULT_THREAD_STACKSIZE, NULL, 1, NULL );
     osThreadDef(task_start, task_start, 2, 0, 400);
     task_startHandle = osThreadCreate(osThread(task_start), NULL);
-
       }
-	//fre=xPortGetFreeHeapSize();
     vTaskStartScheduler();
-
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_QUEUES */
@@ -200,51 +193,41 @@ void StartDefaultTask(void const * argument)
 	ip_addr_t ServerIPaddr;
 	IP4_ADDR(&ServerIPaddr, 192, 168, 0, 189);
 
-	volatile size_t fre=0;
-//	  			fre=xPortGetFreeHeapSize();
-	  			volatile	 UBaseType_t uxHighWaterMark;
-
-
-	  		  conn = netconn_new(NETCONN_TCP);
+	conn = netconn_new(NETCONN_TCP);
 	  		  if(conn!=NULL)
-
 	  		  {
 	  		    err = netconn_bind(conn, NULL, 4555);
-
 	  		    	if (err == ERR_OK)
 	  		    	{
 	  		    	  err = netconn_connect(conn, &ServerIPaddr, 5000);
-
 	  		    	  while(err!=ERR_OK)
 	  		    	  {
 	  		    	  netconn_delete(conn);
-
 	  		    	  conn = netconn_new(NETCONN_TCP);
-	  		    		  		  if(conn!=NULL)
-	  		    		  		  {
+  		    		  		  if(conn!=NULL)
+  		    		  		  {
 	  		    		  		    err = netconn_bind(conn, NULL, 4555);
-	  		    		  		    	if (err == ERR_OK)
+  		    		  		    	if (err == ERR_OK)
 	  		    		  		    	{
 	  		    		  		    	  err = netconn_connect(conn, &ServerIPaddr, 5000);
 	  		    		  		    	}
-	  		    		  		  }
+  		    		  		  }
 
 	  		    	  vTaskDelay(10);
 	  		    	  }
 
-	  		    	  if (err==ERR_OK)
-	  		    	  {
-		  	  		HAL_UART_Transmit(&huart2, "port listening\r\n", strlen("port listening\r\n"), 0x100);
-	  		    	conn01.conn = conn;
-	  		  		sys_thread_new("tcp_thread", tcp_thread, (void*)&conn01, 1500, osPriorityHigh );
-	  		    	  }
-	  		    	}
-	  		    	else
-	  		    	{
-	  		    	  netconn_delete(conn);
-	  		    	}
+	  		    	  	  	  if (err==ERR_OK)
+	  		    	  	  	  {
+								HAL_UART_Transmit(&huart2, "port listening\r\n", strlen("port listening\r\n"), 0x100);
+								conn01.conn = conn;
+								sys_thread_new("tcp_thread", tcp_thread, (void*)&conn01, 1500, osPriorityHigh );
+							  }
+					}
+								else
+								{
+								  netconn_delete(conn);
+								}
 	  		    }
-
 
   /* Infinite loop */
   for(;;)
@@ -265,63 +248,60 @@ HAL_UART_Transmit(&huart2, "TCP_THREAD\r\n", strlen("TCP_THREAD\r\n"), 0x100);
 struct_conn *arg_conn;
 struct netconn *conn;
 err_t sent_err;
+err_t ent_err;
 arg_conn = (struct_conn*) arg;
 conn = (void*)arg_conn->conn;
-int lReceivedValue;
 portBASE_TYPE xStatus;
 int *buf;
+int lReceivedValue;
 static int i=1;
-volatile	 UBaseType_t uxHighWaterMark;
-				__WFI();
+			//	__WFI();
   	  	  	  	  	xStatus = xQueueReceive( xQueueStart, &lReceivedValue, portMAX_DELAY);
-				//	sprintf(str_buf,"start");
 					sent_err=netconn_write(conn, "start", 5, NETCONN_COPY);
 					sent_err=netconn_write(conn, "go!!!", 5, NETCONN_COPY);
 					 if (sent_err!=ERR_OK)
-    					 {
+    				 {
     					  netconn_delete(conn);
-    					 }
-					 else {
-					sys_thread_new("task_stop", task_stop, (void*)conn, 2*DEFAULT_THREAD_STACKSIZE, 3 );
+    				 }
+					 else
+					{
+					sys_thread_new("task_stop", task_stop, (void*)conn, 2048, 3 );
 					sys_thread_new("task_servo", task_servo, (void*)conn, 512, 1 );
-					for(;;)
-	  		    {
-	  		      		if (i==1) {
-
+						for(;;)
+							  {
+								if (i==1)
+								{
 		    					xStatus = xQueueReceive( xQueue, &lReceivedValue, portMAX_DELAY);
-	  		    		    					taskENTER_CRITICAL();
+	  		    		    	taskENTER_CRITICAL();
 	  		    				HAL_UART_Transmit(&huart2, "can`t move\r\n", strlen("can`t move\r\n"), 0x100);
 	  		    				buf=&lReceivedValue;
-   							//	sprintf(str_buf,"stop!");
    								sent_err=netconn_write(conn, "stop!", 5, NETCONN_COPY);
 
-	  		    					      				  if (sent_err!=ERR_OK)
-	  		    					      				  {
-	  		    					      						HAL_UART_Transmit(&huart2, "Send data fail\r\n", strlen("Send data fail\r\n"), 0x100);
-	  		    					      						netconn_close(conn);
-	  		    					      				  }
+	  		    		 				  if (sent_err!=ERR_OK)
+	  		    		   				  {
+	  		    		  					HAL_UART_Transmit(&huart2, "Send data fail\r\n", strlen("Send data fail\r\n"), 0x100);
+	  		    		  					netconn_close(conn);
+   					      				  }
+  		    					taskEXIT_CRITICAL();
+	  		    				i=2;
+	  		    				}
 
-	  		    					      	taskEXIT_CRITICAL();
-	  		    					i=2;
-	  		    					}
-
-	  		    		else if (i==2) {
-	  		    			xStatus = xQueueReceive( xQueue, &lReceivedValue, 100/portTICK_RATE_MS);
-
+								else if (i==2)
+								{
+								xStatus = xQueueReceive( xQueue, &lReceivedValue, 100/portTICK_RATE_MS);
 	  		    						if (xStatus==errQUEUE_EMPTY)
 	  		    						{
-	  		    				  		    		  taskENTER_CRITICAL();
-	  		    				  		    	HAL_UART_Transmit(&huart2, "Let`s go\r\n", strlen("Let`s go\r\n"), 0x100);
-	  		    				  		    	buf=&lReceivedValue;
-	  		    								//sprintf(str_buf,"go!!!");
-	  		    								sent_err=netconn_write(conn, "go!!!", 5, NETCONN_COPY);
-	  		    				  		    					      				  if (sent_err!=ERR_OK)
-	  		    				  		    					      				  {
-	  		    				  		    					      						HAL_UART_Transmit(&huart2, "Send data fail\r\n", strlen("Send data fail\r\n"), 0x100);
-	  		    				  		    					      						netconn_close(conn);
-	  		    				  		    					      				  }
+	  		    				  		   taskENTER_CRITICAL();
+	  		    				  		   HAL_UART_Transmit(&huart2, "Let`s go\r\n", strlen("Let`s go\r\n"), 0x100);
+	  		    				  		   buf=&lReceivedValue;
+	  		    				  		   ent_err=netconn_write(conn, "go!!!", 5, NETCONN_COPY);
+	  		    				  		     if (sent_err!=ERR_OK)
+	  		    				  		     {
+	  		    				  		    	 HAL_UART_Transmit(&huart2, "Send data fail\r\n", strlen("Send data fail\r\n"), 0x100);
+	  		    				  		    	 netconn_close(conn);
+	  		    				  		     }
 
-	  		    				  		 i=1;
+	  		    				  		i=1;
 	  		  		    				taskEXIT_CRITICAL();
 
 	  		    						}
@@ -329,19 +309,16 @@ volatile	 UBaseType_t uxHighWaterMark;
 	  		    						{
 	  		    							continue;
 	  		    						}
-	  		    					}
-		}
+	  		    				}
+							  }
 					 }
 
 }
 
 static void vHandlerTask1( void *pvParameters )
 {
-	volatile	 UBaseType_t uxHighWaterMark;
-
 myDev=&myDevStruct[0];
 uint8_t status;
-static int i=0;
 static int j=0;
 int lValueToSend;
 portBASE_TYPE xStatus;
@@ -355,28 +332,23 @@ VL53L0X_RangingMeasurementData_t myRangingData;
 		taskENTER_CRITICAL();
 		myDev=&myDevStruct[0];
 
-if(j>=1) {
-
-	VL53L0X_GetRangingMeasurementData(myDev, &myRangingData);
-
-						lValueToSend=(int)myRangingData.RangeMilliMeter;
+		if(j>=1)
+		{
+			VL53L0X_GetRangingMeasurementData(myDev, &myRangingData);
+			lValueToSend=(int)myRangingData.RangeMilliMeter;
 			xStatus = xQueueSendToBack( xQueue, &lValueToSend, 0 );
 			j=2;
-	}
+		}
 
-	j++;
+		j++;
 		VL53L0X_ClearInterruptMask(myDev, -1);
 		taskEXIT_CRITICAL();
-  	  }
-	}
+   }
+}
 
 
 static void vHandlerTask2( void *pvParameters )
 {
-	volatile	 UBaseType_t uxHighWaterMark;
-			        uxHighWaterMark = uxTaskGetStackHighWaterMark( NULL );
-			        volatile size_t fre=0;
-			        	fre=xPortGetFreeHeapSize();
 myDev=&myDevStruct[1];
 uint8_t status;
 static int j=0;
@@ -391,29 +363,27 @@ VL53L0X_RangingMeasurementData_t myRangingData;
 		taskENTER_CRITICAL();
 		myDev=&myDevStruct[1];
 
-if(j>=1) {
+		if(j>=1)
+		{
 
 		VL53L0X_GetRangingMeasurementData(myDev, &myRangingData);
-
-						lValueToSend=(int)myRangingData.RangeMilliMeter;
-							xStatus = xQueueSendToBack( xQueue, &lValueToSend, 0 );
+		lValueToSend=(int)myRangingData.RangeMilliMeter;
+		xStatus = xQueueSendToBack( xQueue, &lValueToSend, 0 );
 		j=2;
-}
+		}
 
-j++;
-	VL53L0X_ClearInterruptMask(myDev, -1);
+		j++;
+		VL53L0X_ClearInterruptMask(myDev, -1);
 		taskEXIT_CRITICAL();
-				        uxHighWaterMark = uxTaskGetStackHighWaterMark( NULL );
-}
+  }
 }
 
 
 static void vHandlerTask3( void *pvParameters )
 {
 
-//myDev=&myDevStruct[2];
+myDev=&myDevStruct[2];
 uint8_t status;
-static int i=0;
 static int j=0;
 int lValueToSend;
 portBASE_TYPE xStatus;
@@ -421,92 +391,82 @@ portBASE_TYPE xStatus;
 VL53L0X_RangingMeasurementData_t myRangingData;
 
 	for( ;; )
-  {
-		//myDev=&myDevStruct[2];
+	{
+		myDev=&myDevStruct[2];
 		xSemaphoreTake( xBinarySemaphore3, portMAX_DELAY );
 		taskENTER_CRITICAL();
 		myDev=&myDevStruct[2];
 
-if(j>=1) {
+		if(j>=1)
+		{
 
-VL53L0X_GetRangingMeasurementData(myDev, &myRangingData);
-					lValueToSend=(int)myRangingData.RangeMilliMeter;
+			VL53L0X_GetRangingMeasurementData(myDev, &myRangingData);
+			lValueToSend=(int)myRangingData.RangeMilliMeter;
 			xStatus = xQueueSendToBack( xQueue, &lValueToSend, 0 );
 			j=2;
-	}
+		}
 
-	j++;
+		j++;
 		VL53L0X_ClearInterruptMask(myDev, -1);
 		taskEXIT_CRITICAL();
 	}
-	}
+}
 
 static void task_start(void *pVparametrs)
 {
-	volatile size_t fre=0;
-		fre=xPortGetFreeHeapSize();
-			int i=1;
+	int i=1;
 	xSemaphoreTake(xBinarySemaphoreStart, 100);
-	volatile	 UBaseType_t uxHighWaterMark;
-		        uxHighWaterMark = uxTaskGetStackHighWaterMark( NULL );
-							xSemaphoreTake(xBinarySemaphoreStart, portMAX_DELAY );
-							HAL_NVIC_DisableIRQ(EXTI9_5_IRQn);
-		  		  	  		HAL_UART_Transmit(&huart2, "enter to Start\r\n", strlen("enter to Start\r\n"), 0x100);
-		  		  	  		osThreadDef(tsk01, vHandlerTask1, 1, 0, 350);
-		  		  	  		Task01Handle = osThreadCreate(osThread(tsk01), NULL);
-		  		  	  		osThreadDef(tsk02, vHandlerTask2, 1, 0, 350);
-		  		  	  		Task02Handle = osThreadCreate(osThread(tsk02), NULL);
-		  		  	  		osThreadDef(tsk03, vHandlerTask3, 1, 0, 350);
-		  		  	  		Task02Handle = osThreadCreate(osThread(tsk03), NULL);
-		  		  	  		xQueueSendToBack( xQueueStart, &i, 0 );
-						        uxHighWaterMark = uxTaskGetStackHighWaterMark( NULL );
+	xSemaphoreTake(xBinarySemaphoreStart, portMAX_DELAY );
+	HAL_NVIC_DisableIRQ(EXTI9_5_IRQn);
+	HAL_UART_Transmit(&huart2, "enter to Start\r\n", strlen("enter to Start\r\n"), 0x100);
+	osThreadDef(tsk01, vHandlerTask1, 1, 0, 350);
+	Task01Handle = osThreadCreate(osThread(tsk01), NULL);
+	osThreadDef(tsk02, vHandlerTask2, 1, 0, 350);
+	Task02Handle = osThreadCreate(osThread(tsk02), NULL);
+	osThreadDef(tsk03, vHandlerTask3, 1, 0, 350);
+	Task02Handle = osThreadCreate(osThread(tsk03), NULL);
+	xQueueSendToBack( xQueueStart, &i, 0 );
 
-		  		  	  			HAL_NVIC_EnableIRQ(EXTI4_IRQn);
-		  		  	  			HAL_NVIC_EnableIRQ(EXTI2_IRQn);
-		  		  	  	  		HAL_NVIC_EnableIRQ(EXTI3_IRQn);
-			  		  	  	  	osThreadTerminate(NULL);
+	HAL_NVIC_EnableIRQ(EXTI4_IRQn);
+	HAL_NVIC_EnableIRQ(EXTI2_IRQn);
+	HAL_NVIC_EnableIRQ(EXTI3_IRQn);
+	osThreadTerminate(NULL);
 
-		  		  	  		for(;;)
-		  		  	  		{
+		for(;;)
+		{
 
-		  		  	  		}
+		}
 }
 
 
 static void task_stop(void *pVparametrs)
 
 {
-	volatile	 UBaseType_t uxHighWaterMark;
-			        uxHighWaterMark = uxTaskGetStackHighWaterMark( NULL );
 err_t err;
 struct netconn *conn;
 conn=(struct netconn *) pVparametrs;
 xSemaphoreTake(xBinarySemaphoreStop, 100);
 HAL_UART_Transmit(&huart2, "enter to Stop\r\n", strlen("enter to Stop\r\n"), 0x100);
 xSemaphoreTake(xBinarySemaphoreStop, portMAX_DELAY );
-//sprintf(str_buf,"emerg");
-						err=netconn_write(conn, "emerg", 5, NETCONN_COPY);
-						netconn_close(conn);
-						netconn_delete(conn);
-						HAL_NVIC_DisableIRQ(EXTI4_IRQn);
-						HAL_NVIC_DisableIRQ(EXTI2_IRQn);
-						HAL_NVIC_DisableIRQ(EXTI3_IRQn);
 
-							        uxHighWaterMark = uxTaskGetStackHighWaterMark( NULL );
+err=netconn_write(conn, "emerg", 5, NETCONN_COPY);
+netconn_close(conn);
+netconn_delete(conn);
+HAL_NVIC_DisableIRQ(EXTI4_IRQn);
+HAL_NVIC_DisableIRQ(EXTI2_IRQn);
+HAL_NVIC_DisableIRQ(EXTI3_IRQn);
+osThreadTerminate(Task01Handle);
+osThreadTerminate(Task02Handle);
+osThreadTerminate(Task03Handle);
+osThreadTerminate(tcp_thread);
+osThreadTerminate(defaultTaskHandle);
+osThreadTerminate(task_servo);
+__WFI();
+osThreadTerminate(NULL);
+  		      for(;;)
+  		      {
 
-							        osThreadTerminate(Task01Handle);
-							        osThreadTerminate(Task02Handle);
-							        osThreadTerminate(Task03Handle);
-							        osThreadTerminate(tcp_thread);
-							        osThreadTerminate(defaultTaskHandle);
-							        osThreadTerminate(task_servo);
-							        __WFI();
-							        osThreadTerminate(NULL);
-
-	  		      for(;;)
-		  		  	  		{
-
-		  		  	  		}
+  		      }
 }
 
 
@@ -530,6 +490,12 @@ HAL_UART_Transmit(&huart2, "enter to servo\r\n", strlen("enter to servo\r\n"), 0
 						    if(buflen>1)
 						    {
 						    	HAL_UART_Transmit(&huart2, (uint8_t*)buf, 5, 0x100);
+						    	TIM1->CCR1=1600;
+						    	TIM2->CCR4=1600;
+						    	vTaskDelay(2000);
+						    	TIM1->CCR1=800;
+							    TIM2->CCR4=800;
+							  //  vTaskDelay(2000);
 						    }
 						    netbuf_delete(inbuf);
 						  }

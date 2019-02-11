@@ -111,8 +111,8 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_TIM6_Init();
-  MX_TIM3_Init();
+ // MX_TIM6_Init();
+  //MX_TIM3_Init();
   MX_I2C2_Init();
   MX_USART2_UART_Init();
   MX_TIM1_Init();
@@ -137,15 +137,11 @@ int main(void)
      	VL53L0X_StartMeasurement(myDev);
      	VL53L0X_ClearInterruptMask(myDev, -1);
      	HAL_Delay(1);
-  	 //-----------------------------------------------------------------------------------------------------------------------------------------------
+ //-----------------------------------------------------------------------------------------------------------------------------------------------
 
-        HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
-        HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_4);
+  	  	  	  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
+  	          HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_4);
 
-        TIM1->CCR1=800;
-        TIM2->CCR4=800;
-
-//HAL_Delay(20000);
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in freertos.c) */
@@ -164,7 +160,6 @@ int main(void)
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
-
   }
   /* USER CODE END 3 */
 

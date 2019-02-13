@@ -48,8 +48,7 @@ extern UART_HandleTypeDef huart2;
 
 /* External variables --------------------------------------------------------*/
 extern ETH_HandleTypeDef heth;
-extern TIM_HandleTypeDef htim3;
-extern TIM_HandleTypeDef htim6;
+
 extern TIM_HandleTypeDef htim7;
 
 /******************************************************************************/
@@ -192,42 +191,69 @@ void EXTI1_IRQHandler(void)
 /**
 * @brief This function handles EXTI line2 interrupt.
 */
+void EXTI2_IRQHandler(void)
+{
+  /* USER CODE BEGIN EXTI2_IRQn 0 */
+	static portBASE_TYPE xHigherPriorityTaskWoken;
+    xHigherPriorityTaskWoken = pdFALSE;
+	xSemaphoreGiveFromISR( xBinarySemaphore2, &xHigherPriorityTaskWoken );
+  /* USER CODE END EXTI2_IRQn 0 */
+  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_2);
+  /* USER CODE BEGIN EXTI2_IRQn 1 */
+
+  /* USER CODE END EXTI2_IRQn 1 */
+}
+
+/**
+* @brief This function handles EXTI line3 interrupt.
+*/
+void EXTI3_IRQHandler(void)
+{
+  /* USER CODE BEGIN EXTI3_IRQn 0 */
+	static portBASE_TYPE xHigherPriorityTaskWoken;
+	xHigherPriorityTaskWoken = pdFALSE;
+	xSemaphoreGiveFromISR( xBinarySemaphore1, &xHigherPriorityTaskWoken );
+  /* USER CODE END EXTI3_IRQn 0 */
+  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_3);
+  /* USER CODE BEGIN EXTI3_IRQn 1 */
+
+  /* USER CODE END EXTI3_IRQn 1 */
+}
+
+/**
+* @brief This function handles EXTI line4 interrupt.
+*/
+void EXTI4_IRQHandler(void)
+{
+  /* USER CODE BEGIN EXTI4_IRQn 0 */
+	static portBASE_TYPE xHigherPriorityTaskWoken;
+	xHigherPriorityTaskWoken = pdFALSE;
+	xSemaphoreGiveFromISR( xBinarySemaphore3, &xHigherPriorityTaskWoken );
+  /* USER CODE END EXTI4_IRQn 0 */
+  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_4);
+  /* USER CODE BEGIN EXTI4_IRQn 1 */
+
+  /* USER CODE END EXTI4_IRQn 1 */
+}
+
 /**
 * @brief This function handles EXTI line[9:5] interrupts.
 */
 void EXTI9_5_IRQHandler(void)
 {
-	/* USER CODE BEGIN EXTI9_5_IRQn 0 */
+  /* USER CODE BEGIN EXTI9_5_IRQn 0 */
 	if (__HAL_GPIO_EXTI_GET_IT(GPIO_PIN_7) != GPIO_PIN_SET)
-
 	{
 	static portBASE_TYPE xHigherPriorityTaskWoken;
 	//xHigherPriorityTaskWoken = pdFALSE;
 	HAL_UART_Transmit(&huart2, "Start_Button\r\n", strlen("Start_Button\r\n"), 0x100);
-
-			  /* 'Дать' семафор для разблокировки задачи. */
-			xSemaphoreGiveFromISR( xBinarySemaphoreStart, &xHigherPriorityTaskWoken );
+	xSemaphoreGiveFromISR( xBinarySemaphoreStart, &xHigherPriorityTaskWoken );
+	}
   /* USER CODE END EXTI9_5_IRQn 0 */
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_7);
-	}
-  //HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_9);
   /* USER CODE BEGIN EXTI9_5_IRQn 1 */
 
   /* USER CODE END EXTI9_5_IRQn 1 */
-}
-
-/**
-* @brief This function handles TIM3 global interrupt.
-*/
-void TIM3_IRQHandler(void)
-{
-  /* USER CODE BEGIN TIM3_IRQn 0 */
-
-  /* USER CODE END TIM3_IRQn 0 */
-  HAL_TIM_IRQHandler(&htim3);
-  /* USER CODE BEGIN TIM3_IRQn 1 */
-
-  /* USER CODE END TIM3_IRQn 1 */
 }
 
 /**
@@ -236,36 +262,15 @@ void TIM3_IRQHandler(void)
 void EXTI15_10_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI15_10_IRQn 0 */
-		static portBASE_TYPE xHigherPriorityTaskWoken;
-		xHigherPriorityTaskWoken = pdFALSE;
-		HAL_UART_Transmit(&huart2, "loool\r\n", strlen("loool\r\n"), 0x100);
-
-		 /* 'Дать' семафор для разблокировки задачи. */
-		xSemaphoreGiveFromISR( xBinarySemaphoreStop, &xHigherPriorityTaskWoken );
+	static portBASE_TYPE xHigherPriorityTaskWoken;
+	xHigherPriorityTaskWoken = pdFALSE;
+	HAL_UART_Transmit(&huart2, "stop button\r\n", strlen("stop button\r\n"), 0x100);
+	xSemaphoreGiveFromISR( xBinarySemaphoreStop, &xHigherPriorityTaskWoken );
   /* USER CODE END EXTI15_10_IRQn 0 */
- // HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_10);
- // HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_11);
-  //HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_12);
- // HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_13);
- // HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_14);
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_15);
   /* USER CODE BEGIN EXTI15_10_IRQn 1 */
 
   /* USER CODE END EXTI15_10_IRQn 1 */
-}
-
-/**
-* @brief This function handles TIM6 global interrupt, DAC1 and DAC2 underrun error interrupts.
-*/
-void TIM6_DAC_IRQHandler(void)
-{
-  /* USER CODE BEGIN TIM6_DAC_IRQn 0 */
-
-  /* USER CODE END TIM6_DAC_IRQn 0 */
-  HAL_TIM_IRQHandler(&htim6);
-  /* USER CODE BEGIN TIM6_DAC_IRQn 1 */
-
-  /* USER CODE END TIM6_DAC_IRQn 1 */
 }
 
 /**
@@ -297,54 +302,6 @@ void ETH_IRQHandler(void)
 }
 
 /* USER CODE BEGIN 1 */
-void EXTI2_IRQHandler(void)
-{
-  /* USER CODE BEGIN EXTI2_IRQn 0 */
-	static portBASE_TYPE xHigherPriorityTaskWoken;
-		  xHigherPriorityTaskWoken = pdFALSE;
-		  /* 'Дать' семафор для разблокировки задачи. */
-		  xSemaphoreGiveFromISR( xBinarySemaphore2, &xHigherPriorityTaskWoken );
-		  // portEND_SWITCHING_ISR(xHigherPriorityTaskWoken );
-  /* USER CODE END EXTI2_IRQn 0 */
-  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_2);
-  /* USER CODE BEGIN EXTI2_IRQn 1 */
-
-  /* USER CODE END EXTI2_IRQn 1 */
-}
-
-/**
-* @brief This function handles EXTI line3 interrupt.
-*/
-void EXTI3_IRQHandler(void)
-{
-  /* USER CODE BEGIN EXTI3_IRQn 0 */
-	static portBASE_TYPE xHigherPriorityTaskWoken;
-	xHigherPriorityTaskWoken = pdFALSE;
-	  /* 'Дать' семафор для разблокировки задачи. */
-	xSemaphoreGiveFromISR( xBinarySemaphore1, &xHigherPriorityTaskWoken );
-	//  portEND_SWITCHING_ISR(xHigherPriorityTaskWoken );
-  /* USER CODE END EXTI3_IRQn 0 */
-  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_3);
-  /* USER CODE BEGIN EXTI3_IRQn 1 */
-
-  /* USER CODE END EXTI3_IRQn 1 */
-}
-
-/**
-* @brief This function handles EXTI line4 interrupt.
-*/
-void EXTI4_IRQHandler(void)
-{
-  /* USER CODE BEGIN EXTI4_IRQn 0 */
-	static portBASE_TYPE xHigherPriorityTaskWoken;
-	xHigherPriorityTaskWoken = pdFALSE;
-	xSemaphoreGiveFromISR( xBinarySemaphore3, &xHigherPriorityTaskWoken );
-  /* USER CODE END EXTI4_IRQn 0 */
-  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_4);
-  /* USER CODE BEGIN EXTI4_IRQn 1 */
-
-  /* USER CODE END EXTI4_IRQn 1 */
-}
 
 /* USER CODE END 1 */
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

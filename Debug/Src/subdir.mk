@@ -16,7 +16,8 @@ C_SRCS += \
 ../Src/syscalls.c \
 ../Src/system_stm32f4xx.c \
 ../Src/tim.c \
-../Src/usart.c 
+../Src/usart.c \
+../Src/vl53l0x_calibration.c 
 
 OBJS += \
 ./Src/ethernetif.o \
@@ -31,7 +32,8 @@ OBJS += \
 ./Src/syscalls.o \
 ./Src/system_stm32f4xx.o \
 ./Src/tim.o \
-./Src/usart.o 
+./Src/usart.o \
+./Src/vl53l0x_calibration.o 
 
 C_DEPS += \
 ./Src/ethernetif.d \
@@ -46,7 +48,8 @@ C_DEPS += \
 ./Src/syscalls.d \
 ./Src/system_stm32f4xx.d \
 ./Src/tim.d \
-./Src/usart.d 
+./Src/usart.d \
+./Src/vl53l0x_calibration.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes

@@ -119,4 +119,5 @@
 "Src/system_stm32f4xx.o"
 "Src/tim.o"
 "Src/usart.o"
+"Src/vl53l0x_calibration.o"
 "startup/startup_stm32f407xx.o"

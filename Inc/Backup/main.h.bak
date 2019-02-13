@@ -76,8 +76,6 @@
 #define SPI1_CS_GPIO_Port GPIOA
 #define E2_HEAT_Pin GPIO_PIN_0
 #define E2_HEAT_GPIO_Port GPIOB
-#define BED_HEAT_Pin GPIO_PIN_1
-#define BED_HEAT_GPIO_Port GPIOB
 #define BOOT1_Pin GPIO_PIN_2
 #define BOOT1_GPIO_Port GPIOB
 #define RELAY_2_Pin GPIO_PIN_11
@@ -99,8 +97,6 @@
 #define USER_KEY_EXTI_IRQn EXTI9_5_IRQn
 #define USER_1_Pin GPIO_PIN_8
 #define USER_1_GPIO_Port GPIOE
-#define USER_2_Pin GPIO_PIN_9
-#define USER_2_GPIO_Port GPIOE
 #define E1_RESET_Pin GPIO_PIN_10
 #define E1_RESET_GPIO_Port GPIOE
 #define Z_RESET_Pin GPIO_PIN_11
@@ -111,10 +107,6 @@
 #define X_RESET_GPIO_Port GPIOE
 #define X_DIR_Pin GPIO_PIN_15
 #define X_DIR_GPIO_Port GPIOE
-#define PD10_Pin GPIO_PIN_10
-#define PD10_GPIO_Port GPIOD
-#define PD11_Pin GPIO_PIN_11
-#define PD11_GPIO_Port GPIOD
 #define LCD_D7_Pin GPIO_PIN_2
 #define LCD_D7_GPIO_Port GPIOG
 #define SD2_DET_Pin GPIO_PIN_3
@@ -125,8 +117,6 @@
 #define USB_POWER_GPIO_Port GPIOG
 #define BEEPER_Pin GPIO_PIN_8
 #define BEEPER_GPIO_Port GPIOG
-#define FAN_1_Pin GPIO_PIN_6
-#define FAN_1_GPIO_Port GPIOC
 #define E1_HEAT_Pin GPIO_PIN_7
 #define E1_HEAT_GPIO_Port GPIOC
 #define UART2_CTS_Pin GPIO_PIN_3
